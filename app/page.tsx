@@ -271,8 +271,8 @@ export default function Home() {
       <div className="sm:flex mt-4 gap-2">
         <div className="flex flex-col sm:w-1/2 sm:h-[500px] mb-4 sm:mb-0 gap-2 overflow-scroll">
           {churchs.length > 0 ? (
-            churchs.map((church: any) => (
-              <div className="bg-white px-8 py-4">
+            churchs.map((church: any, index: number) => (
+              <div className="bg-white px-8 py-4" key={index}>
                 <p className="text-secondary text-left text-sm">IGLESIA</p>
                 <h1 className="text-primary text-left text-2xl font-bold mb-2 uppercase">
                   {church.nombreIglesia}

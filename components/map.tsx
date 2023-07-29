@@ -36,11 +36,12 @@ export default function SimpleMap({ markers }: { markers: any[] }) {
           defaultCenter={defaultProps.center}
           defaultZoom={defaultProps.zoom}
         >
-          {markers?.map((marker) => (
+          {markers?.map((marker, index) => (
             <AnyReactComponent
               lat={marker.lat}
               lng={marker.lng}
               text={marker.name}
+              key={index}
             />
           ))}
         </GoogleMapReact>
@@ -56,11 +57,12 @@ export default function SimpleMap({ markers }: { markers: any[] }) {
           defaultCenter={defaultProps.center}
           defaultZoom={defaultProps.zoom}
         >
-          {markers?.map((marker) => (
+          {markers?.map((marker, index) => (
             <AnyReactComponent
               lat={marker.lat}
               lng={marker.lng}
               text={marker.name}
+              key={index}
             />
           ))}
         </GoogleMapReact>
