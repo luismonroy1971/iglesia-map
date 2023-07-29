@@ -16,12 +16,58 @@
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@font-face {
+  font-family: 'modelica-bold';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/BwModelica-Bold.woff2') format('woff2'),
+    url('/fonts/BwModelica-Bold.otf') format('otf');
+}
+
+@font-face {
+  font-family: 'modelica-medium';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/BwModelica-Medium.woff2') format('woff2'),
+    url('/fonts/BwModelica-Medium.otf') format('otf');
+}
+
+@font-face {
+  font-family: 'modelica-light';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/BwModelica-Light.woff2') format('woff2'),
+    url('/fonts/BwModelica-Light.otf') format('otf');
+}
+
+@font-face {
+  font-family: 'modelica-extrabold';
+  src: url('/fonts/BwModelica-ExtraBold.woff2') format('woff2'),
+    url('/fonts/BwModelica-ExtraBold.otf') format('otf');
+}
+
+* {
+  font-family: 'modelica-light';
+}
+
+p {
+  font-family: 'modelica-medium';
+  font-size: 1rem;
+}
+
+h3 {
+  font-family: 'modelica-light';
+  font-size: 1rem;
+}
+
+.font-light {
+  font-family: 'modelica-light';
+}
+
+h1 {
+  font-family: 'modelica-extrabold';
+  font-size: 2rem;
 }

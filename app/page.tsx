@@ -1,113 +1,338 @@
-import Image from 'next/image'
-
+'use client';
+import SimpleMap from '@/components/map';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useQuery } from 'react-query';
+import Select from 'react-select';
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+  const { setValue, watch, register, handleSubmit, ...form } = useForm();
+  const [allChurchs, setAllChurchs] = useState([]);
+  const [churchs, setChurchs] = useState([]);
+  const selectedDepartment = watch('departamento');
+  const selectedProvince = watch('provincia');
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/churchs`)
+      .then((res) => res.json())
+      .then((res) => {
+        setAllChurchs(res);
+      });
+  }, []);
+
+  const { data: departments, isLoading: isLoadingDepartments } = useQuery<[]>(
+    'departments',
+    () =>
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/departments`).then((res) =>
+        res.json()
+      )
+  );
+
+  const {
+    data: provinces,
+    isLoading: isLoadingProvinces,
+    refetch: refetchProvinces,
+  } = useQuery<[]>(
+    ['provinces', selectedDepartment],
+    () =>
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/provinces?department=${selectedDepartment?.value}`
+      ).then((res) => res.json()),
+    { enabled: false } // This query will not run automatically
+  );
+
+  const {
+    data: districts,
+    isLoading: isLoadingDistricts,
+    refetch: refetchDistricts,
+  } = useQuery<[]>(
+    ['districts', selectedDepartment, selectedProvince],
+    () =>
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/districts?department=${selectedDepartment?.value}&province=${selectedProvince?.value}`
+      ).then((res) => res.json()),
+    { enabled: false } // This query will not run automatically
+  );
+
+  useEffect(() => {
+    console.log('selectedDepartment', selectedDepartment);
+    if (selectedDepartment) {
+      setProvinceAndDistrict();
+
+      refetchProvinces();
+    }
+  }, [selectedDepartment, refetchProvinces]);
+
+  const setProvinceAndDistrict = () => {
+    setValue('provincia', '');
+    setValue('distrito', '');
+  };
+
+  useEffect(() => {
+    console.log('selectedProvince', selectedProvince);
+    if (selectedProvince) {
+      setValue('distrito', '');
+      refetchDistricts();
+    }
+  }, [selectedProvince, refetchDistricts]);
+
+  const searchChurches = handleSubmit((data) => {
+    console.log(data);
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/churchsDist?departamento=${data.departamento.value}&provincia=${data.provincia.value}&distrito=${data.distrito.value}`
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        setChurchs(res);
+      });
+  });
+
+  return (
+    <main className="flex flex-col text-center p-12 bg-gray">
+      <div className="flex justify-center items-center mb-4">
         <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+          src="/images/pin.svg"
+          width={32}
+          height={32}
+          alt="Logo de la iglesia"
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
+      <p className="text-primary text-sm uppercase mb-4">
+        Buscador de iglesias
+      </p>
+      <h1 className="text-primary text-5xl font-extrabold mb-4 text-center leading-[64px]">
+        CONOCE TODAS LAS
+      </h1>
+      <h1 className="text-primary text-5xl font-extrabold mb-4 text-center">
+        IGLESIAS
+      </h1>
+      <form className="sm:flex items-end mt-8 gap-2" onSubmit={searchChurches}>
+        <div className="flex flex-col">
+          <p className="text-primary text-left font-medium text-lg">
+            Departamento
           </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
+          <Select
+            id="departamento"
+            options={departments?.map((department: any) => ({
+              value: department.department,
+              label: department.department,
+            }))}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                width: '280px',
+                borderRadius: '0.5rem',
+                border: 'none'
+              }),
+              option: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+                textAlign: 'left',
+                lineHeight: '1.25rem',
+                color: state.isSelected ? '#1F2937' : '#6B7280',
+                backgroundColor: state.isSelected ? '#F3F4F6' : 'white',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+              }),
+              input: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+              }),
+              indicatorSeparator: (provided: any, state: any) => ({
+                ...provided,
+                display: 'none',
+              }),
+              placeholder: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '0.95rem',
+                fontWeight: 'light',
+              }),
+            }}
+            placeholder="Selecciona el departamento"
+            noOptionsMessage={() => 'No hay departamentos'}
+            {...register('departamento')}
+            onChange={(value) => {
+              setValue('departamento', value);
+              setValue('provincia', '');
+              setValue('distrito', '');
+            }}
+            value={watch('departamento')}
+          />
+        </div>
+        <div className="flex flex-col">
+          <p className="text-primary text-left font-medium text-lg">
+            Provincia
           </p>
-        </a>
+          <Select
+            id="provincia"
+            options={provinces?.map((province: any) => ({
+              value: province.province,
+              label: province.province,
+            }))}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                width: '280px',
+                borderRadius: '0.5rem',
+                border: 'none'
+              }),
+              option: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+                textAlign: 'left',
+                lineHeight: '1.25rem',
+                color: state.isSelected ? '#1F2937' : '#6B7280',
+                backgroundColor: state.isSelected ? '#F3F4F6' : 'white',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+              }),
+              input: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+              }),
+              indicatorSeparator: (provided: any, state: any) => ({
+                ...provided,
+                display: 'none',
+              }),
+              placeholder: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '0.95rem',
+                fontWeight: 'light',
+              }),
+            }}
+            placeholder="Selecciona la provincia"
+            noOptionsMessage={() => 'No hay provincias'}
+            {...register('provincia')}
+            onChange={(value) => {
+              setValue('provincia', value);
+              setValue('distrito', '');
+            }}
+            value={watch('provincia')}
+          />
+        </div>
+        <div className="flex flex-col">
+          <p className="text-primary text-left font-medium text-lg">Distrito</p>
+          <Select
+            id="distrito"
+            options={districts?.map((district: any) => ({
+              value: district.district,
+              label: district.district,
+            }))}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                width: '280px',
+                borderRadius: '0.5rem',
+                border: 'none'
+              }),
+              option: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+                textAlign: 'left',
+                lineHeight: '1.25rem',
+                color: state.isSelected ? '#1F2937' : '#6B7280',
+                backgroundColor: state.isSelected ? '#F3F4F6' : 'white',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+              }),
+              input: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '1rem',
+              }),
+              indicatorSeparator: (provided: any, state: any) => ({
+                ...provided,
+                display: 'none',
+              }),
+              placeholder: (provided: any, state: any) => ({
+                ...provided,
+                fontSize: '0.95rem',
+                fontWeight: 'light',
+              }),
+            }}
+            placeholder="Selecciona el distrito"
+            noOptionsMessage={() => 'No hay distritos'}
+            {...register('distrito')}
+            onChange={(value) => {
+              setValue('distrito', value);
+            }}
+            value={watch('distrito')}
+          />
+        </div>
+        <button className="bg-secondary  px-4 py-2 rounded-md sm:w-40 w-full mt-4 sm:mt-0">
+          <p className="text-primary">Buscar</p>
+        </button>
+      </form>
+      <div className="sm:flex mt-4 gap-2">
+        <div className="flex flex-col sm:w-1/2 sm:h-[500px] mb-4 sm:mb-0 gap-2 overflow-scroll">
+          {churchs.length > 0 ? (
+            churchs.map((church: any) => (
+              <div className="bg-white px-8 py-4">
+                <p className="text-secondary text-left text-sm">IGLESIA</p>
+                <h1 className="text-primary text-left text-2xl font-bold mb-2 uppercase">
+                  {church.nombreIglesia}
+                </h1>
+                <div className="font-light text-primary text-left mb-2">
+                  {church.direccionIglesia}
+                </div>
+                <div className="flex gap-2 my-2">
+                  <Image
+                    src="/images/wapp_black.svg"
+                    width={24}
+                    height={24}
+                    alt="Whatsapp"
+                  />
+                  <p className="text-primary">{church.telefonoIglesia}</p>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  {church.linkFacebook && (
+                    <a href={church.linkFacebook} target="_blank">
+                      <Image
+                        src="/images/facebook.svg"
+                        width={24}
+                        height={24}
+                        alt="Facebook"
+                      />
+                    </a>
+                  )}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+                  {church.linkInstagram && (
+                    <a href={church.linkInstagram} target="_blank">
+                      <Image
+                        src="/images/instagram.svg"
+                        width={24}
+                        height={24}
+                        alt="Instagram"
+                      />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white text-black px-20 h-[500px] rounded-md flex items-center">
+              <p>
+                Aquí se mostrarán los resultados de la búsqueda de iglesias o no
+                se encontraron iglesias en la zona seleccionada.
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="sm:w-2/3">
+          <SimpleMap
+            markers={allChurchs.map((church: any) => ({
+              lat: church.latitud,
+              lng: church.longitud,
+              name: church.nombreIglesia,
+            }))}
+          />
+        </div>
       </div>
     </main>
-  )
+  );
 }
